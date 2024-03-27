@@ -56,12 +56,27 @@ void move(float speed, int direction)
 
 void forward(float dist, float speed)
 {
+  
+  if (dist > 0)
+    deltaDist = dist;
+  else
+    deltaDist = 9999999;
+
+  newDist = forwardDist + deltaDist;
+
   dir = (TDirection) FORWARD;
   move(speed, FORWARD);
 }
 
-void backward(float dist, float speed)
+void reverse(float dist, float speed)
 {
+  if (dist > 0)
+    deltaDist = dist;
+  else
+    deltaDist = 9999999;
+
+  newDist = reverseDist + deltaDist;
+
   dir = (TDirection) BACKWARD;
   move(speed, BACKWARD);
 }
