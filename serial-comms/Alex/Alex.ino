@@ -489,18 +489,18 @@ void loop() {
 	// put your main code here, to run repeatedly:
 	// TPacket recvPacket; // This holds commands from the Pi
 
-	// TResult result = readPacket(&recvPacket);
+	TResult result = readPacket(&recvPacket);
 
-	// if (result == PACKET_OK)
-	// 	handlePacket(&recvPacket);
-	// else if (result == PACKET_BAD)
-	// {
-	// 	sendBadPacket();
-	// }
-	// else if (result == PACKET_CHECKSUM_BAD)
-	// {
-	// 	sendBadChecksum();
-	// }
+	if (result == PACKET_OK)
+		handlePacket(&recvPacket);
+	else if (result == PACKET_BAD)
+	{
+		sendBadPacket();
+	}
+	else if (result == PACKET_CHECKSUM_BAD)
+	{
+		sendBadChecksum();
+	}
 
 
 }
