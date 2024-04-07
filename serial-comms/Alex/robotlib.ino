@@ -25,7 +25,6 @@ void move(float speed, int direction)
 
   switch(direction)
     {
-    {
       case BACK:
         motorFL.run(BACKWARD);
         motorFR.run(BACKWARD);
