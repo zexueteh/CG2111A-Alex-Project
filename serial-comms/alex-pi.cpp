@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <conio.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -248,6 +249,8 @@ void sendCommand(char command)
 	}
 }
 
+
+
 int main()
 {
 	// Connect to the Arduino
@@ -271,13 +274,16 @@ int main()
 
 	while(!exitFlag)
 	{
+		// char ch;
+		// printf("Command (f=forward, b=reverse, l=turn left, r=turn right, s=stop, c=clear stats, g=get stats q=exit)\n");
+		// scanf("%c", &ch);
+
+		// // Purge extraneous characters from input stream
+		// flushInput();
+
+		// sendCommand(ch);
 		char ch;
-		printf("Command (f=forward, b=reverse, l=turn left, r=turn right, s=stop, c=clear stats, g=get stats q=exit)\n");
-		scanf("%c", &ch);
-
-		// Purge extraneous characters from input stream
-		flushInput();
-
+		ch = getch();
 		sendCommand(ch);
 	}
 
