@@ -7,5 +7,6 @@ void startSerial(const char *portName, int baudRate, int byteSize, char parity, 
 
 int serialRead(char *buffer);
 void serialWrite(char *buffer, int len);
+void endSerial();
 #endif
 
