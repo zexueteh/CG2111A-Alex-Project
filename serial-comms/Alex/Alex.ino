@@ -381,12 +381,12 @@ void handleCommand(TPacket *command)
 
 		case COMMAND_TURN_LEFT:
 			sendOK();
-			ccw((double) command->params[1], CCW_TIMEOUT);
+			ccw((double) command->params[0], command->params[1]);
 			break;
 
 		case COMMAND_TURN_RIGHT:
 			sendOK();
-			cw((double) command->params[1], CW_TIMEOUT);
+			cw((double) command->params[0], command->params[1]);
 			break;
 		case COMMAND_STOP:
 			sendOK();
@@ -487,7 +487,7 @@ void loop() {
 
 
 	// put your main code here, to run repeatedly:
-	// TPacket recvPacket; // This holds commands from the Pi
+	TPacket recvPacket; // This holds commands from the Pi
 
 	TResult result = readPacket(&recvPacket);
 
