@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <curses.h>
+#include <iostream>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -271,7 +271,7 @@ int main()
 
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
-	initscr();
+	system("stty raw");
 	while(!exitFlag)
 	{
 		// char ch;
@@ -284,10 +284,10 @@ int main()
 		// sendCommand(ch);
 		char ch;
 
-		ch = getch();
+		ch = std::getchar();
 		sendCommand(ch);
 	}
-
-	addstr("Closing connection to Arduino.\n");
+	system("stty cooked");
+	printf("Closing connection to Arduino.\n");
 	endSerial();
 }
