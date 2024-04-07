@@ -19,12 +19,12 @@ void startSerial(const char *portName, int baudRate, int byteSize, char parity, 
 	int attempt=0;
 	while(_fd < 0 && attempt < maxAttempts)
 	{
-	  printf("ATTEMPTING TO CONNECT TO SERIAL. ATTEMPT # %d of %d.\n", ++attempt, maxAttempts);
+	  addstr("ATTEMPTING TO CONNECT TO SERIAL. ATTEMPT # %d of %d.\n", ++attempt, maxAttempts);
    	_fd=open(portName, O_RDWR | O_NOCTTY | O_NDELAY);
 
 		if(_fd < 0)
 		{
-		  printf("FAILED. TRYING AGAIN IN 5 SECONDS\n");
+		  addstr("FAILED. TRYING AGAIN IN 5 SECONDS\n");
 		  sleep(5);
 		}
 	}
