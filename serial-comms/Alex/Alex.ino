@@ -381,12 +381,12 @@ void handleCommand(TPacket *command)
 
 		case COMMAND_TURN_LEFT:
 			sendOK();
-			ccw((double) command->params[1], CCW_TIMEOUT);
+			ccw((double) command->params[0], (float)command->params[1]);
 			break;
 
 		case COMMAND_TURN_RIGHT:
 			sendOK();
-			cw((double) command->params[1], CW_TIMEOUT);
+			cw((double) command->params[0], (float)command->params[1]);
 			break;
 		case COMMAND_STOP:
 			sendOK();
@@ -487,23 +487,6 @@ void loop() {
 
 
 	// put your main code here, to run repeatedly:
-<<<<<<< HEAD
-	TPacket recvPacket; // This holds commands from the Pi
-
-  TResult result = readPacket(&recvPacket);
-
-	if (result == PACKET_OK)
-	  handlePacket(&recvPacket);
-	else if (result == PACKET_BAD)
-	{
-	    sendBadPacket();
-	}
-	else if (result == PACKET_CHECKSUM_BAD)
-	{
-	  sendBadChecksum();
-=======
-	// TPacket recvPacket; // This holds commands from the Pi
-
 	TResult result = readPacket(&recvPacket);
 
 	if (result == PACKET_OK)
@@ -515,7 +498,6 @@ void loop() {
 	else if (result == PACKET_CHECKSUM_BAD)
 	{
 		sendBadChecksum();
->>>>>>> 8b75c38b3a1d8ae1a813d5c190a2e3f666ddc02d
 	}
 
 
