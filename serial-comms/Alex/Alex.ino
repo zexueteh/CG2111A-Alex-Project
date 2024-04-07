@@ -3,7 +3,6 @@
 #include "packet.h"
 #include "constants.h"
 
-volatile TDirection dir;
 
 /*
    Alex's configuration constants
@@ -19,6 +18,9 @@ volatile TDirection dir;
 // by taking revs * WHEEL_CIRC
 
 #define WHEEL_CIRC          21.362812
+
+#define MOTOR_TIMEOUT 2000
+
 
 /*
    Alex's State Variables
@@ -46,11 +48,10 @@ volatile unsigned long rightRevs;
 volatile unsigned long forwardDist;
 volatile unsigned long reverseDist;
 
-// Variables to keep track of whether we've moved 
-// a command distance
 
-unsigned long deltaDist;
-unsigned long newDist;
+volatile uint8_t motor_status = STOPPED; 
+volatile uint8_t left_dist = 0;
+volatile uint8_t right_dist = 0;
 
 /*
 
@@ -120,13 +121,13 @@ void sendMessage(const char *message)
 	sendResponse(&messagePacket);
 }
 
-//void dbprintf(char *format, ...) {
-//  va_list args;
-//  char buffer[128];
-//  va_start(args, format);
-//  vsprintf(buffer, format, args);
-//  sendMessage(buffer);
-//}
+void dbprintf(char *format, ...) {
+ va_list args;
+ char buffer[128];
+ va_start(args, format);
+ vsprintf(buffer, format, args);
+ sendMessage(buffer);
+}
 
 void sendBadPacket()
 {
@@ -206,77 +207,31 @@ void enablePullups()
 }
 
 // Functions to be called by INT2 and INT3 ISRs.
-void leftISR()
+ISR(INT2_vect)
 {
-	// Serial.print("LEFT: ");
-	// Serial.println(leftTicks);
-	if (dir == FORWARD) {
-		leftForwardTicks++;
-		forwardDist = (unsigned long) ((float) leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
-	}
-
-	if (dir == BACKWARD) {
-		leftReverseTicks++;
-		reverseDist = (unsigned long) ((float) leftReverseTicks / COUNTS_PER_REV * WHEEL_CIRC);
-	}
-
-	if (dir == LEFT) {
-		leftReverseTicksTurns++;
-	}
-
-	if (dir == RIGHT) {
-		leftForwardTicksTurns++;
-	}
+  left_dist++;
 }
 
-void rightISR()
+ISR(INT3_vect)
 {
-	// Serial.print("RIGHT: ");
-	// Serial.println(rightTicks);
-	if (dir == FORWARD) {
-		rightForwardTicks++;
-	}
-
-	if (dir == BACKWARD) {
-		rightReverseTicks++;
-	}
-
-	if (dir == LEFT) {
-		rightForwardTicksTurns++;
-	}
-
-	if (dir == RIGHT) {
-		rightReverseTicksTurns++;
-	}
+  right_dist++;
 }
 
-// Set up the external interrupt pins INT2 and INT3
-// for falling edge triggered. Use bare-metal.
-void setupEINT()
+void startEncoders()
 {
-	// Use bare-metal to configure pins 18 and 19 to be
-	// falling edge triggered. Remember to enable
-	// the INT2 and INT3 interrupts.
-	EIMSK = 0b00001100;
-	EICRA = 0b10100000;
-	// Hint: Check pages 110 and 111 in the ATmega2560 Datasheet.
-
+  DDRD &= 0b11110011;
+  PORTD |= 0b00001100;
+  EIMSK = 0b00000000;
+  EICRA = 0b10100000;
 }
-
-// Implement the external interrupt ISRs below.
-// INT3 ISR should call leftISR while INT2 ISR
-// should call rightISR.
-
-ISR(INT3_vect) {
-	leftISR();
+void pauseEncoders(){
+  EIMSK &= 0b11110011;
 }
-
-ISR(INT2_vect) {
-	rightISR();
+void resumeEncoders(){
+  EIMSK |= 0b00001100;
 }
 
 
-// Implement INT2 and INT3 ISRs above.
 
 /*
    Setup and start codes for serial communications
@@ -406,6 +361,9 @@ void initializeState()
 	clearCounters();
 }
 
+#define CW_TIMEOUT 1500
+#define CCW_TIMEOUT 1500
+
 void handleCommand(TPacket *command)
 {
 	switch (command->command)
@@ -413,22 +371,22 @@ void handleCommand(TPacket *command)
 		// For movement commands, param[0] = distance, param[1] = speed.
 		case COMMAND_FORWARD:
 			sendOK();
-			forward((double) command->params[0], (float) command->params[1]);
+			forward((double) command->params[0], (float) command->params[1], MOTOR_TIMEOUT);
 			break;
 
 		case COMMAND_REVERSE:
 			sendOK();
-			backward((double) command->params[0], (float) command->params[1]);
+			backward((double) command->params[0], (float) command->params[1], MOTOR_TIMEOUT);
 			break;
 
 		case COMMAND_TURN_LEFT:
 			sendOK();
-			left((double) command->params[0], (float) command->params[1]);
+			ccw((double) command->params[1], CCW_TIMEOUT);
 			break;
 
 		case COMMAND_TURN_RIGHT:
 			sendOK();
-			right((double) command->params[0], (float) command->params[1]);
+			cw((double) command->params[1], CW_TIMEOUT);
 			break;
 		case COMMAND_STOP:
 			sendOK();
@@ -487,12 +445,14 @@ void setup() {
 	// put your setup code here, to run once:
 
 	cli();
-	setupEINT();
+  startEncoders();
 	setupSerial();
 	startSerial();
 	enablePullups();
 	initializeState();
 	sei();
+
+
 }
 
 void handlePacket(TPacket *packet)
@@ -518,6 +478,7 @@ void handlePacket(TPacket *packet)
 }
 
 void loop() {
+  
 	// Uncomment the code below for Step 2 of Activity 3 in Week 8 Studio 2
 
 	//forward(0, 100);
@@ -526,46 +487,20 @@ void loop() {
 
 
 	// put your main code here, to run repeatedly:
-	TPacket recvPacket; // This holds commands from the Pi
+	// TPacket recvPacket; // This holds commands from the Pi
 
-	TResult result = readPacket(&recvPacket);
+	// TResult result = readPacket(&recvPacket);
 
-	if (result == PACKET_OK)
-		handlePacket(&recvPacket);
-	else if (result == PACKET_BAD)
-	{
-		sendBadPacket();
-	}
-	else if (result == PACKET_CHECKSUM_BAD)
-	{
-		sendBadChecksum();
-	}
+	// if (result == PACKET_OK)
+	// 	handlePacket(&recvPacket);
+	// else if (result == PACKET_BAD)
+	// {
+	// 	sendBadPacket();
+	// }
+	// else if (result == PACKET_CHECKSUM_BAD)
+	// {
+	// 	sendBadChecksum();
+	// }
 
-	if (deltaDist > 0) 
-	{
-		if (dir == FORWARD)
-		{
-			if (forwardDist > newDist)
-			{
-				deltaDist = 0;
-				newDist = 0;
-				stop();
-			}
-		}
-		else if (dir == BACKWARD)
-		{
-			if (reverseDist > newDist)
-			{
-				deltaDist = 0;
-				newDist = 0;
-				stop();
-			}
-		}
-		else if (dir == STOP) 
-		{
-			deltaDist = 0;
-			newDist = 0;
-			stop();
-		}
-	}
+
 }

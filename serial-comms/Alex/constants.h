@@ -37,15 +37,22 @@ typedef enum
 } TDirection;
 
 // Direction values
-typedef enum Tdir
+typedef enum dir
 {
   STOP,
   GO,
   BACK,
   CCW,
   CW
-} Tdir;
+} dir;
 
+// Motor State values
+enum motorState {
+    STOPPED,
+    MOVING,
+    OBSTRUCTED,
+    REACHED
+};
 // Commands
 // For direction commands, param[0] = distance in cm to move
 // param[1] = speed

@@ -1,4 +1,8 @@
 #include <AFMotor.h>
+#define SLIP_STEPS 4
+#define BRAKEDELAY 500
+
+
 
 // Motor control
 #define FRONT_LEFT   4 // M4 on the driver shield
@@ -47,54 +51,68 @@ void move(float speed, int direction)
       break;
       case STOP:
       default:
-        motorFL.run(STOP);
-        motorFR.run(STOP);
-        motorBL.run(STOP);
-        motorBR.run(STOP); 
+        motorFL.run(RELEASE);
+        motorFR.run(RELEASE);
+        motorBL.run(RELEASE);
+        motorBR.run(RELEASE); 
     }
 }
 
-void forward(float dist, float speed)
+void forward(int speed, int distance, int timeout)
 {
-  
-  if (dist > 0)
-    deltaDist = dist;
-  else
-    deltaDist = 9999999;
-
-  newDist = forwardDist + deltaDist;
-
-  dir = (TDirection) FORWARD;
+  left_dist = 0;
+  right_dist = 0;
+  resumeEncoders();
   move(speed, FORWARD);
+  unsigned long start_time = millis();
+  unsigned long curr_dist = 0;
+  while (curr_dist != distance){
+    curr_dist = (left_dist > right_dist) ? left_dist : right_dist;
+    if (((millis() - start_time) > timeout) || (right_dist - left_dist > SLIP_STEPS) || (left_dist - right_dist > SLIP_STEPS) || (left_dist == distance) || (right_dist == distance)){
+      pauseEncoders();
+      stop();
+      break;
+    }
+  }
+  delay(BRAKEDELAY);
 }
 
-void reverse(float dist, float speed)
+void backward(int speed, int distance, int timeout)
 {
-  if (dist > 0)
-    deltaDist = dist;
-  else
-    deltaDist = 9999999;
-
-  newDist = reverseDist + deltaDist;
-
-  dir = (TDirection) BACKWARD;
+  left_dist = 0;
+  right_dist = 0;
+  resumeEncoders();
   move(speed, BACKWARD);
+  unsigned long start_time = millis();
+  unsigned long curr_dist = 0;
+  while (curr_dist != distance){
+    curr_dist = (left_dist > right_dist) ? left_dist : right_dist;
+    if (((millis() - start_time) > timeout) || (right_dist - left_dist > SLIP_STEPS) || (left_dist - right_dist > SLIP_STEPS) || (left_dist == distance) || (right_dist == distance)){
+      pauseEncoders();
+      stop();
+      break;
+    }
+  }
+  delay(BRAKEDELAY);
 }
 
-void ccw(float dist, float speed)
+void ccw(int speed, int timeout)
 {
-  dir = (TDirection) LEFT;
   move(speed, CCW);
+  delay(timeout);
+  stop();
+  delay(BRAKEDELAY);
 }
 
-void cw(float dist, float speed)
+void cw(int speed, int timeout)
 {
-  dir = (TDirection) RIGHT;
   move(speed, CW);
+  delay(timeout);
+  stop();
+  delay(BRAKEDELAY);
 }
-
 void stop()
 {
-  dir = (TDirection) STOP;
   move(0, STOP);
 }
+
