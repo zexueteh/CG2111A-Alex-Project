@@ -12,7 +12,7 @@
 
 // Check and ensure that this baud rate is the same
 // as what is used in Alex.ino
-#define BAUD_RATE			B9600
+#define BAUD_RATE			B115200
 
 // TLS Port Number
 #define SERVER_PORT			5001
@@ -228,48 +228,37 @@ void handleCommand(void *conn, const char *buffer)
 	
 	switch(cmd)
 	{
-		case 'f':
-		case 'F':
+		case 'w':
+		case 'W':
 			commandPacket.command = COMMAND_FORWARD;
-			uartSendPacket(&commandPacket);
-			break;
-
-		case 'b':
-		case 'B':
-			commandPacket.command = COMMAND_REVERSE;
-			uartSendPacket(&commandPacket);
-			break;
-
-		case 'l':
-		case 'L':
-			commandPacket.command = COMMAND_TURN_LEFT;
-			uartSendPacket(&commandPacket);
-			break;
-
-		case 'r':
-		case 'R':
-			commandPacket.command = COMMAND_TURN_RIGHT;
 			uartSendPacket(&commandPacket);
 			break;
 
 		case 's':
 		case 'S':
-			commandPacket.command = COMMAND_STOP;
+			commandPacket.command = COMMAND_REVERSE;
 			uartSendPacket(&commandPacket);
 			break;
 
-		case 'c':
-		case 'C':
-			commandPacket.command = COMMAND_CLEAR_STATS;
-			commandPacket.params[0] = 0;
+		case 'a':
+		case 'A':
+			commandPacket.command = COMMAND_TURN_LEFT;
 			uartSendPacket(&commandPacket);
 			break;
 
-		case 'g':
-		case 'G':
-			commandPacket.command = COMMAND_GET_STATS;
+		case 'd':
+		case 'D':
+			commandPacket.command = COMMAND_TURN_RIGHT;
 			uartSendPacket(&commandPacket);
 			break;
+
+
+		case 'q':
+		case 'q': 
+			endSerial();
+			break;
+			
+
 
 		default:
 			printf("Bad command\n");
