@@ -77,7 +77,7 @@ void forward(int speed, int distance, int timeout)
   delay(BRAKEDELAY);
 }
 
-void backward(int speed, int distance, int timeout)
+void backward(int speed, int distance )
 {
   left_dist = 0;
   right_dist = 0;
