@@ -13,9 +13,9 @@
 #define BAUD_RATE			B9600
 #define NORMAL_SPEED 70 
 #define FAST_SPEED 100
-#define DISTANCE 100
-#define TURN_NUDGE 50
-#define TURN_FULL 100
+#define DISTANCE 50
+#define TURN_NUDGE 20
+#define TURN_FULL 45
 
 int exitFlag=0;
 sem_t _xmitSema;
@@ -114,7 +114,7 @@ void sendPacket(TPacket *packet)
 	int len = serialize(buffer, packet, sizeof(TPacket));
     
 	serialWrite(buffer, len);
-    std::cout << "packet sent" << std::endl;
+    //std::cout << "packet sent" << std::endl;
 }
 
 void *receiveThread(void *p)
