@@ -15,7 +15,7 @@
 #define FAST_SPEED 100
 #define DISTANCE 100
 #define TURN_NUDGE 50
-#define TURN_FULL 75
+#define TURN_FULL 100
 
 int exitFlag=0;
 sem_t _xmitSema;
@@ -165,9 +165,30 @@ void sendCommand(char command)
 	{
 		case 'w':
         case 'W':
-			commandPacket.params[0] = (command == 'w')? : NORMAL_SPEED: FAST_SPEED;
+			commandPacket.params[0] = (command == 'w')? NORMAL_SPEED: FAST_SPEED;
             commandPacket.params[1] = DISTANCE;
 			commandPacket.command = COMMAND_FORWARD;
+			sendPacket(&commandPacket);
+			break;
+		case 's':
+        case 'S':
+			commandPacket.params[0] = (command == 's')? NORMAL_SPEED: FAST_SPEED;
+            commandPacket.params[1] = DISTANCE;
+			commandPacket.command = COMMAND_REVERSE;
+			sendPacket(&commandPacket);
+			break;
+		case 'd':
+        case 'D':
+			commandPacket.params[0] = NORMAL_SPEED;
+            commandPacket.params[1] = (command == 's')? TURN_NUDGE: TURN_FULL;
+			commandPacket.command = COMMAND_TURN_RIGHT;
+			sendPacket(&commandPacket);
+			break;
+		case 'd':
+        case 'D':
+			commandPacket.params[0] = NORMAL_SPEED;
+            commandPacket.params[1] = (command == 'd')? TURN_NUDGE: TURN_FULL;
+			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
 			break;
         case 'q':
