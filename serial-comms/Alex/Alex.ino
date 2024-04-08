@@ -368,26 +368,30 @@ void handleCommand(TPacket *command)
 {
 	switch (command->command)
 	{
-		// For movement commands, param[0] = distance, param[1] = speed.
+		// For movement commands, param[0] = distance, param[1] = speed, param[2] = timeout.
 		case COMMAND_FORWARD:
 
-			forward((int) command->params[0], (int) command->params[1], MOTOR_TIMEOUT);
+
+			forward((double) command->params[0], 200, (float) command->params[1]);
+
       sendOK();
 			break;
 
 		case COMMAND_REVERSE:
-			backward((int) command->params[0], (int) command->params[1], MOTOR_TIMEOUT);
+			backward((double) command->params[0], 200, (float) command->params[1]);
       sendOK();
-			break;
+
+      break;
 
 		case COMMAND_TURN_LEFT:
+			
+			ccw((double) command->params[0], (float)command->params[1]);
 			sendOK();
-			ccw((int) command->params[0], (int)command->params[1]);
 			break;
 
 		case COMMAND_TURN_RIGHT:
+			cw((double) command->params[0], (float)command->params[1]);
 			sendOK();
-			cw((int) command->params[0], (int)command->params[1]);
 			break;
 		case COMMAND_STOP:
 			sendOK();

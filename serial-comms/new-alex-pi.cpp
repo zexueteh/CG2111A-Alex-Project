@@ -11,11 +11,12 @@
 
 #define PORT_NAME			"/dev/ttyACM0"
 #define BAUD_RATE			B9600
-#define NORMAL_SPEED 70 
-#define FAST_SPEED 100
-#define DISTANCE 10
-#define TURN_NUDGE 150
-#define TURN_FULL 450
+#define STRAIGHT_SPEED 50
+#define TURN_SPEED 80
+#define TIMEOUT_SHORT 100
+#define TIMEOUT_LONG 300
+#define TURN_NUDGE 100
+#define TURN_FULL 300
 
 int exitFlag=0;
 sem_t _xmitSema;
@@ -88,8 +89,7 @@ void handleMessage(TPacket *packet)
 
 void handlePacket(TPacket *packet)
 {
-	switch(packet->packetType)
-	{
+	switch(packet->packetType) {
 		case PACKET_TYPE_COMMAND:
 				// Only we send command packets, so ignore
 			break;
@@ -166,29 +166,29 @@ void sendCommand(char command)
 	{
 		case 'w':
         case 'W':
-			commandPacket.params[0] = (command == 'w')? NORMAL_SPEED: FAST_SPEED;
-            commandPacket.params[1] = DISTANCE;
+			commandPacket.params[0] = STRAIGHT_SPEED;
+            commandPacket.params[1] = (command == 'w')? TIMEOUT_SHORT: TIMEOUT_LONG;
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
 			break;
 		case 's':
         case 'S':
-			commandPacket.params[0] = (command == 's')? NORMAL_SPEED: FAST_SPEED;
-            commandPacket.params[1] = DISTANCE;
+			commandPacket.params[0] = STRAIGHT_SPEED;
+            commandPacket.params[1] = (command == 's')? TIMEOUT_SHORT: TIMEOUT_LONG;
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
 			break;
 		case 'd':
         case 'D':
-			commandPacket.params[0] = FAST_SPEED;
-            commandPacket.params[1] = (command == 's')? TURN_NUDGE: TURN_FULL;
+			commandPacket.params[0] = TURN_SPEED;
+            commandPacket.params[1] = (command == 'd')? TURN_NUDGE: TURN_FULL;
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;
 		case 'a':
         case 'A':
-			commandPacket.params[0] = FAST_SPEED;
-            commandPacket.params[1] = (command == 'd')? TURN_NUDGE: TURN_FULL;
+			commandPacket.params[0] = TURN_SPEED;
+            commandPacket.params[1] = (command == 'a')? TURN_NUDGE: TURN_FULL;
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
 			break;
@@ -237,3 +237,4 @@ int main()
 	printf("Closing connection to Arduino.\n");
 	endSerial();
 }
+

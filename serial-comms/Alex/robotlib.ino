@@ -1,6 +1,6 @@
 #include <AFMotor.h>
 #define SLIP_STEPS 4
-#define BRAKEDELAY 500
+#define BRAKEDELAY 0
 
 
 
