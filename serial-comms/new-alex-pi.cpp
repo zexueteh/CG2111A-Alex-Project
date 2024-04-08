@@ -43,11 +43,11 @@ void handleResponse(TPacket *packet)
 	switch(packet->command)
 	{
 		case RESP_OK:
-			printf("Command OK\n");
+            std::cout << "Command OK" << std::endl;
 		break;
 
 		case RESP_STATUS:
-			handleStatus(packet);
+			//handleStatus(packet);
 		break;
 
 		default:
@@ -112,8 +112,9 @@ void sendPacket(TPacket *packet)
 {
 	char buffer[PACKET_SIZE];
 	int len = serialize(buffer, packet, sizeof(TPacket));
-
+    
 	serialWrite(buffer, len);
+    std::cout << "packet sent" << std::endl;
 }
 
 void *receiveThread(void *p)
@@ -165,7 +166,7 @@ void sendCommand(char command)
 	{
 		case 'w':
         case 'W':
-			commandPacket.params[0] = (command == 'w')? : NORMAL_SPEED: FAST_SPEED;
+			commandPacket.params[0] = (command == 'w')? NORMAL_SPEED: FAST_SPEED;
             commandPacket.params[1] = DISTANCE;
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
@@ -198,16 +199,20 @@ int main()
 
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
-	system("stty raw");
+	
 	while(!exitFlag)
 	{
+        system("stty raw");
 		char ch;
 		ch = std::getchar();
+        system("stty cooked");
+
 		sendCommand(ch);
-        printf("\n");
-        flushInput();
-	}
-	system("stty cooked");
+        //printf("\n");
+        std::cout << std::endl;
+        std::cout.flush();
+    	}
+	//system("stty cooked");
 	printf("Closing connection to Arduino.\n");
 	endSerial();
 }
