@@ -370,23 +370,24 @@ void handleCommand(TPacket *command)
 	{
 		// For movement commands, param[0] = distance, param[1] = speed.
 		case COMMAND_FORWARD:
-			sendOK();
-			forward((double) command->params[0], (float) command->params[1], MOTOR_TIMEOUT);
+
+			forward((int) command->params[0], (int) command->params[1], MOTOR_TIMEOUT);
+      sendOK();
 			break;
 
 		case COMMAND_REVERSE:
-			sendOK();
-			backward((double) command->params[0], (float) command->params[1], MOTOR_TIMEOUT);
+			backward((int) command->params[0], (int) command->params[1], MOTOR_TIMEOUT);
+      sendOK();
 			break;
 
 		case COMMAND_TURN_LEFT:
 			sendOK();
-			ccw((double) command->params[0], (float)command->params[1]);
+			ccw((int) command->params[0], (int)command->params[1]);
 			break;
 
 		case COMMAND_TURN_RIGHT:
 			sendOK();
-			cw((double) command->params[0], (float)command->params[1]);
+			cw((int) command->params[0], (int)command->params[1]);
 			break;
 		case COMMAND_STOP:
 			sendOK();
@@ -487,6 +488,7 @@ void loop() {
 
 
 	// put your main code here, to run repeatedly:
+  TPacket recvPacket;
 	TResult result = readPacket(&recvPacket);
 
 	if (result == PACKET_OK)

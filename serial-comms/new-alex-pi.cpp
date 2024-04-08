@@ -13,9 +13,9 @@
 #define BAUD_RATE			B9600
 #define NORMAL_SPEED 70 
 #define FAST_SPEED 100
-#define DISTANCE 50
-#define TURN_NUDGE 20
-#define TURN_FULL 45
+#define DISTANCE 10
+#define TURN_NUDGE 150
+#define TURN_FULL 450
 
 int exitFlag=0;
 sem_t _xmitSema;
@@ -180,14 +180,14 @@ void sendCommand(char command)
 			break;
 		case 'd':
         case 'D':
-			commandPacket.params[0] = NORMAL_SPEED;
+			commandPacket.params[0] = FAST_SPEED;
             commandPacket.params[1] = (command == 's')? TURN_NUDGE: TURN_FULL;
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;
 		case 'a':
         case 'A':
-			commandPacket.params[0] = NORMAL_SPEED;
+			commandPacket.params[0] = FAST_SPEED;
             commandPacket.params[1] = (command == 'd')? TURN_NUDGE: TURN_FULL;
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
