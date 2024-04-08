@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <iostream>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -11,11 +10,6 @@
 
 #define PORT_NAME			"/dev/ttyACM0"
 #define BAUD_RATE			B9600
-#define NORMAL_SPEED 70 
-#define FAST_SPEED 100
-#define DISTANCE 100
-#define TURN_NUDGE 50
-#define TURN_FULL 100
 
 int exitFlag=0;
 sem_t _xmitSema;
@@ -37,17 +31,33 @@ void handleError(TResult error)
 	}
 }
 
+void handleStatus(TPacket *packet)
+{
+	printf("\n ------- ALEX STATUS REPORT ------- \n\n");
+	printf("Left Forward Ticks:\t\t%d\n", packet->params[0]);
+	printf("Right Forward Ticks:\t\t%d\n", packet->params[1]);
+	printf("Left Reverse Ticks:\t\t%d\n", packet->params[2]);
+	printf("Right Reverse Ticks:\t\t%d\n", packet->params[3]);
+	printf("Left Forward Ticks Turns:\t%d\n", packet->params[4]);
+	printf("Right Forward Ticks Turns:\t%d\n", packet->params[5]);
+	printf("Left Reverse Ticks Turns:\t%d\n", packet->params[6]);
+	printf("Right Reverse Ticks Turns:\t%d\n", packet->params[7]);
+	printf("Forward Distance:\t\t%d\n", packet->params[8]);
+	printf("Reverse Distance:\t\t%d\n", packet->params[9]);
+	printf("\n---------------------------------------\n\n");
+}
+
 void handleResponse(TPacket *packet)
 {
 	// The response code is stored in command
 	switch(packet->command)
 	{
 		case RESP_OK:
-            std::cout << "Command OK" << std::endl;
+			printf("Command OK\n");
 		break;
 
 		case RESP_STATUS:
-			//handleStatus(packet);
+			handleStatus(packet);
 		break;
 
 		default:
@@ -112,9 +122,8 @@ void sendPacket(TPacket *packet)
 {
 	char buffer[PACKET_SIZE];
 	int len = serialize(buffer, packet, sizeof(TPacket));
-    
+
 	serialWrite(buffer, len);
-    std::cout << "packet sent" << std::endl;
 }
 
 void *receiveThread(void *p)
@@ -155,6 +164,13 @@ void flushInput()
 	while((c = getchar()) != '\n' && c != EOF);
 }
 
+void getParams(TPacket *commandPacket)
+{
+	printf("Enter distance/angle in cm/degrees (e.g. 50) and power in %% (e.g. 75) separated by space.\n");
+	printf("E.g. 50 75 means go at 50 cm at 75%% power for forward/backward, or 50 degrees left or right turn at 75%%  power\n");
+	scanf("%d %d", &commandPacket->params[0], &commandPacket->params[1]);
+	flushInput();
+}
 
 void sendCommand(char command)
 {
@@ -164,41 +180,63 @@ void sendCommand(char command)
 
 	switch(command)
 	{
-		case 'w':
-        case 'W':
-			commandPacket.params[0] = (command == 'w')? NORMAL_SPEED: FAST_SPEED;
-            commandPacket.params[1] = DISTANCE;
+		case 'f':
+		case 'F':
+			getParams(&commandPacket);
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
 			break;
-		case 's':
-        case 'S':
-			commandPacket.params[0] = (command == 's')? NORMAL_SPEED: FAST_SPEED;
-            commandPacket.params[1] = DISTANCE;
+
+		case 'b':
+		case 'B':
+			getParams(&commandPacket);
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
 			break;
-		case 'd':
-        case 'D':
-			commandPacket.params[0] = NORMAL_SPEED;
-            commandPacket.params[1] = (command == 's')? TURN_NUDGE: TURN_FULL;
-			commandPacket.command = COMMAND_TURN_RIGHT;
-			sendPacket(&commandPacket);
-			break;
-		case 'd':
-        case 'D':
-			commandPacket.params[0] = NORMAL_SPEED;
-            commandPacket.params[1] = (command == 'd')? TURN_NUDGE: TURN_FULL;
+
+		case 'l':
+		case 'L':
+			getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
 			break;
-        case 'q':
+
+		case 'r':
+		case 'R':
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_TURN_RIGHT;
+			sendPacket(&commandPacket);
+			break;
+
+		case 's':
+		case 'S':
+			commandPacket.command = COMMAND_STOP;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'c':
+		case 'C':
+			commandPacket.command = COMMAND_CLEAR_STATS;
+			commandPacket.params[0] = 0;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'g':
+		case 'G':
+			commandPacket.command = COMMAND_GET_STATS;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'q':
 		case 'Q':
 			exitFlag=1;
 			break;
-    }
-}
 
+		default:
+			printf("Bad command\n");
+
+	}
+}
 
 int main()
 {
@@ -220,20 +258,19 @@ int main()
 
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
-	
+
 	while(!exitFlag)
 	{
-        system("stty raw");
 		char ch;
-		ch = std::getchar();
-        system("stty cooked");
+		printf("Command (f=forward, b=reverse, l=turn left, r=turn right, s=stop, c=clear stats, g=get stats q=exit)\n");
+		scanf("%c", &ch);
+
+		// Purge extraneous characters from input stream
+		flushInput();
 
 		sendCommand(ch);
-        //printf("\n");
-        std::cout << std::endl;
-        std::cout.flush();
-    	}
-	//system("stty cooked");
+	}
+
 	printf("Closing connection to Arduino.\n");
 	endSerial();
 }
