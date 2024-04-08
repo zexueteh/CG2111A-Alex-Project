@@ -370,13 +370,15 @@ void handleCommand(TPacket *command)
 	{
 		// For movement commands, param[0] = distance, param[1] = speed.
 		case COMMAND_FORWARD:
-			sendOK();
+
 			forward((double) command->params[0], (float) command->params[1], MOTOR_TIMEOUT);
+      sendOK();
 			break;
 
 		case COMMAND_REVERSE:
-			sendOK();
+
 			backward((double) command->params[0], (float) command->params[1], MOTOR_TIMEOUT);
+			sendOK();
 			break;
 
 		case COMMAND_TURN_LEFT:
