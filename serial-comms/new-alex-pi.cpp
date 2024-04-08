@@ -185,8 +185,8 @@ void sendCommand(char command)
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;
-		case 'd':
-        case 'D':
+		case 'a':
+        case 'A':
 			commandPacket.params[0] = NORMAL_SPEED;
             commandPacket.params[1] = (command == 'd')? TURN_NUDGE: TURN_FULL;
 			commandPacket.command = COMMAND_TURN_LEFT;
