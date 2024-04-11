@@ -30,6 +30,7 @@
 volatile uint8_t motor_status = STOPPED; 
 volatile uint8_t left_dist = 0;
 volatile uint8_t right_dist = 0;
+static volatile int arr[3] = {0};
 
 /*
 
@@ -353,7 +354,7 @@ void setup() {
 	startSerial();
 	enablePullups();
 	sei();
-
+  Serial.begin(9600);
 
 }
 
@@ -402,6 +403,14 @@ void loop() {
 	{
 		sendBadChecksum();
 	}
-
-
+  /*getRGB();
+  Serial.print("r: ");
+  Serial.print();
+  Serial.print(" g: ");
+  Serial.print(greenSum);
+  Serial.print(" b: ");
+  Serial.println(blueSum);
+  
+  //Serial.println(getColour());
+*/
 }
