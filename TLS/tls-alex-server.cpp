@@ -5,6 +5,8 @@
 #include "packet.h"
 #include "serial.h"
 #include "serialize.h"
+#include <iostream>
+#include "stdint.h"
 
 /* TODO: Set PORT_NAME to the port name of your Arduino */
 #define PORT_NAME			"/dev/ttyACM0"
@@ -12,7 +14,7 @@
 
 // Check and ensure that this baud rate is the same
 // as what is used in Alex.ino
-#define BAUD_RATE			B115200
+#define BAUD_RATE			B9600
 
 // TLS Port Number
 #define SERVER_PORT			5001
@@ -225,7 +227,8 @@ void handleCommand(void *conn, const char *buffer)
 	commandPacket.params[1] = cmdParam[1];
 
 	printf("COMMAND RECEIVED: %c %d %d\n", cmd, cmdParam[0], cmdParam[1]);
-	
+    //std::cout << (int)commandPacket.params[0] << std::endl;
+    printf("AAAAAAA");
 	switch(cmd)
 	{
 		case 'w':
@@ -261,7 +264,7 @@ void handleCommand(void *conn, const char *buffer)
 
 		*/
 		case 'q':
-		case 'q': 
+		case 'Q': 
 			endSerial();
 			break;
 			
