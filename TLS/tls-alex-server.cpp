@@ -251,8 +251,15 @@ void handleCommand(void *conn, const char *buffer)
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			uartSendPacket(&commandPacket);
 			break;
+		/*
+		case 'c':
+		case 'C':
+			commandPacket.params[2] = cmdParam[2];
+			commandPacket.command = COMMAND_GET_COLOUR;
+			uartSendPacket(&commandPacket);
+			
 
-
+		*/
 		case 'q':
 		case 'q': 
 			endSerial();
@@ -290,7 +297,7 @@ void *worker(void *conn)
 	while(networkActive)
 	{
 		/* TODO: Implement SSL read into buffer */
-                sslRead(conn, buffer, len);
+        len = sslRead(conn, buffer, BUF_LEN);
 		/* END TODO */
 		// As long as we are getting data, network is active
 		networkActive=(len > 0);
