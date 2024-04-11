@@ -22,31 +22,9 @@
 #define MOTOR_TIMEOUT 2000
 
 
-/*
-   Alex's State Variables
- */
 
-// Store the ticks from Alex's left and
-// right encoders.
-volatile unsigned long leftForwardTicks;
-volatile unsigned long rightForwardTicks;
-volatile unsigned long leftReverseTicks;
-volatile unsigned long rightReverseTicks;
 
-// Left and right encoder ticks for turning
-volatile unsigned long leftForwardTicksTurns;
-volatile unsigned long rightForwardTicksTurns;
-volatile unsigned long leftReverseTicksTurns;
-volatile unsigned long rightReverseTicksTurns;
 
-// Store the revolutions on Alex's left
-// and right wheels
-volatile unsigned long leftRevs;
-volatile unsigned long rightRevs;
-
-// Forward and backward distance traveled
-volatile unsigned long forwardDist;
-volatile unsigned long reverseDist;
 
 
 volatile uint8_t motor_status = STOPPED; 
@@ -59,13 +37,6 @@ volatile uint8_t right_dist = 0;
 
  */
 
-void left(float ang, float speed) {
-	ccw(ang, speed);
-}
-
-void right(float ang, float speed) {
-	cw(ang, speed);
-}
 
 TResult readPacket(TPacket *packet)
 {
@@ -85,30 +56,30 @@ TResult readPacket(TPacket *packet)
 
 }
 
-void sendStatus()
-{
-	// Implement code to send back a packet containing key
-	// information like leftTicks, rightTicks, leftRevs, rightRevs
-	// forwardDist and reverseDist
-	// Use the params array to store this information, and set the
-	// packetType and command files accordingly, then use sendResponse
-	// to send out the packet. See sendMessage on how to use sendResponse.
-	//
-	TPacket statusPacket;
-	statusPacket.packetType = PACKET_TYPE_RESPONSE;
-	statusPacket.command = RESP_STATUS;
-	statusPacket.params[0] = leftForwardTicks;
-	statusPacket.params[1] = rightForwardTicks;
-	statusPacket.params[2] = leftReverseTicks;
-	statusPacket.params[3] = rightReverseTicks;
-	statusPacket.params[4] = leftForwardTicksTurns;
-	statusPacket.params[5] = rightForwardTicksTurns;
-	statusPacket.params[6] = leftReverseTicksTurns;
-	statusPacket.params[7] = rightReverseTicksTurns;
-	statusPacket.params[8] = forwardDist;
-	statusPacket.params[9] = reverseDist;
-	sendResponse(&statusPacket);
-}
+// void sendStatus()
+// {
+// 	// Implement code to send back a packet containing key
+// 	// information like leftTicks, rightTicks, leftRevs, rightRevs
+// 	// forwardDist and reverseDist
+// 	// Use the params array to store this information, and set the
+// 	// packetType and command files accordingly, then use sendResponse
+// 	// to send out the packet. See sendMessage on how to use sendResponse.
+// 	//
+// 	TPacket statusPacket;
+// 	statusPacket.packetType = PACKET_TYPE_RESPONSE;
+// 	statusPacket.command = RESP_STATUS;
+// 	// statusPacket.params[0] = leftForwardTicks;
+// 	// statusPacket.params[1] = rightForwardTicks;
+// 	// statusPacket.params[2] = leftReverseTicks;
+// 	// statusPacket.params[3] = rightReverseTicks;
+// 	// statusPacket.params[4] = leftForwardTicksTurns;
+// 	// statusPacket.params[5] = rightForwardTicksTurns;
+// 	// statusPacket.params[6] = leftReverseTicksTurns;
+// 	// statusPacket.params[7] = rightReverseTicksTurns;
+// 	// statusPacket.params[8] = forwardDist;
+// 	// statusPacket.params[9] = reverseDist;
+// 	sendResponse(&statusPacket);
+// }
 
 void sendMessage(const char *message)
 {
@@ -284,82 +255,8 @@ void writeSerial(const char *buffer, int len)
 	// Change Serial to Serial2/Serial3/Serial4 in later labs when using other UARTs
 }
 
-/*
-   Alex's setup and run codes
 
- */
 
-// Clears all our counters
-void clearCounters()
-{
-	leftForwardTicks = 0;
-	rightForwardTicks = 0;
-	leftReverseTicks = 0;
-	rightReverseTicks = 0;
-
-	leftForwardTicksTurns = 0;
-	rightForwardTicksTurns = 0;
-	leftReverseTicksTurns = 0;
-	rightReverseTicksTurns = 0;
-
-	leftRevs = 0;
-	rightRevs = 0;
-	forwardDist = 0;
-	reverseDist = 0;
-}
-
-// Clears one particular counter
-void clearOneCounter(int which)
-{
-	switch (which) {
-		case 0:
-			leftForwardTicks = 0;
-			break;
-
-		case 1:
-			rightForwardTicks =0;
-			break;
-
-		case 2:
-			leftReverseTicks =0;
-			break;
-
-		case 3:
-			rightReverseTicks =0;
-			break;
-
-		case 4:
-			leftForwardTicksTurns =0;
-			break;
-
-		case 5:
-			rightForwardTicksTurns =0;
-			break;
-
-		case 6:
-			leftReverseTicksTurns =0;
-			break;
-
-		case 7:
-			rightReverseTicksTurns =0;
-			break;
-
-		case 8:
-			forwardDist =0;
-			break;
-
-		case 9:
-			reverseDist =0;
-			break;
-	}
-}
-
-// Intialize Alex's internal states
-
-void initializeState()
-{
-	clearCounters();
-}
 
 #define CW_TIMEOUT 1500
 #define CCW_TIMEOUT 1500
@@ -394,16 +291,16 @@ void handleCommand(TPacket *command)
 			sendOK();
 			break;
 		case COMMAND_STOP:
-			sendOK();
 			stop();
+      sendOK();
 			break;
-		case COMMAND_CLEAR_STATS:
+		case COMMAND_GET_COLOUR:
 			sendOK();
-			clearOneCounter( command->params[0]-'0');
+			sendColour();
 			break;
-		case COMMAND_GET_STATS:
+		case COMMAND_GET_DIST:
 			sendOK();
-			//right((double) command->params[0], (float) command->params[1]);
+			sendDist();
 			break;
 
 		default:
@@ -452,9 +349,9 @@ void setup() {
 	cli();
   startEncoders();
 	setupSerial();
+  sensorSetup();
 	startSerial();
 	enablePullups();
-	initializeState();
 	sei();
 
 

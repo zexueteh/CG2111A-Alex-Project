@@ -67,11 +67,27 @@ void handleMessage(TPacket *packet)
 	sendNetworkData(data, sizeof(data));
 }
 
-void handleStatus(TPacket *packet)
-{
-	char data[65];
-	printf("UART STATUS PACKET\n");
-	data[0] = NET_STATUS_PACKET;
+// void handleStatus(TPacket *packet)
+// {
+// 	char data[65];
+// 	printf("UART STATUS PACKET\n");
+// 	data[0] = NET_STATUS_PACKET;
+// 	memcpy(&data[1], packet->params, sizeof(packet->params));
+// 	sendNetworkData(data, sizeof(data));
+// }
+
+void handleColour(TPacket *packet) {
+	char data[17];
+	printf("UART COLOUR PACKET\n");
+	data[0] = NET_COLOUR_PACKET;
+	memcpy(&data[1], packet->params, sizeof(packet->params));
+	sendNetworkData(data, sizeof(data));
+}
+
+void handleDist(TPacket *packet) {
+	char data[5];
+	printf("UART DIST PACKET\n");
+	data[0] = NET_DIST_PACKET;
 	memcpy(&data[1], packet->params, sizeof(packet->params));
 	sendNetworkData(data, sizeof(data));
 }
@@ -87,11 +103,19 @@ void handleResponse(TPacket *packet)
 			resp[0] = NET_ERROR_PACKET;
 			resp[1] = RESP_OK;
 			sendNetworkData(resp, sizeof(resp));
-		break;
+			break;
 
-		case RESP_STATUS:
-			handleStatus(packet);
-		break;
+		// case RESP_STATUS:
+		// 	handleStatus(packet);
+		// 	break;
+
+		case RESP_COLOUR:
+			handleColour(packet);
+			break; 
+		
+		case RESP_DIST:
+			handleDist(packet);
+			break;
 
 		default:
 		printf("Boo\n");
@@ -260,17 +284,16 @@ void handleCommand(void *conn, const char *buffer)
 
 		case 'c':
 		case 'C':
-			commandPacket.command = COMMAND_CLEAR_STATS;
-			commandPacket.params[0] = 0;
+			commandPacket.command = COMMAND_GET_COLOUR;
 			uartSendPacket(&commandPacket);
 			break;
 
-		case 'g':
-		case 'G':
-			commandPacket.command = COMMAND_GET_STATS;
+		case 'F':
+		case 'f':
+			commandPacket.command = COMMAND_GET_DIST;
 			uartSendPacket(&commandPacket);
 			break;
-
+		
 		default:
 			printf("Bad command\n");
 
@@ -301,7 +324,7 @@ void *worker(void *conn)
 	while(networkActive)
 	{
 		/* TODO: Implement SSL read into buffer */
-                sslRead(conn, buffer, len);
+        len = sslRead(conn, buffer, BUF_LEN);
 		/* END TODO */
 		// As long as we are getting data, network is active
 		networkActive=(len > 0);
