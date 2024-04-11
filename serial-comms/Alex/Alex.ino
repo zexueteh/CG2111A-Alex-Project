@@ -405,7 +405,9 @@ void handleCommand(TPacket *command)
 			sendOK();
 			//right((double) command->params[0], (float) command->params[1]);
 			break;
-
+    case COMMAND_GET_COLOUR:
+      
+      sendOK()
 		default:
 			sendBadCommand();
 	}
