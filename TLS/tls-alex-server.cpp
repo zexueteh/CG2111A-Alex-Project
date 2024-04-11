@@ -266,16 +266,12 @@ void handleCommand(void *conn, const char *buffer)
 		/*
 		case 'c':
 		case 'C':
-			commandPacket.params[0] = cmdParam[0];
-			commandPacket.params[1] = cmdParam[1];
-			commandPacket.params[2] = cmdParam[2];
 			commandPacket.command = COMMAND_GET_COLOUR;
 			uartSendPacket(&commandPacket);
 			break;
 		
 		case 'f':
 		case 'F':
-			commandPacket.params[0] = cmdParam[0];
 			commandPacket.command = COMMAND_GET_DIST;
 			uartSendPacket(&commandPacket);
 			break;
