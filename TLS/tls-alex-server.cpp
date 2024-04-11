@@ -147,6 +147,9 @@ void handleError(TResult error)
 		default:
 			printf("ERROR: UNKNOWN ERROR\n");
 	}
+	endSerial(); 
+	startSerial();
+	startSerial(PORT_NAME, BAUD_RATE, 8, 'N', 1, 5);
 }
 
 void *uartReceiveThread(void *p)
@@ -223,46 +226,61 @@ void handleCommand(void *conn, const char *buffer)
 	TPacket commandPacket;
 
 	commandPacket.packetType = PACKET_TYPE_COMMAND;
-	commandPacket.params[0] = cmdParam[0];
-	commandPacket.params[1] = cmdParam[1];
 
 	printf("COMMAND RECEIVED: %c %d %d\n", cmd, cmdParam[0], cmdParam[1]);
     //std::cout << (int)commandPacket.params[0] << std::endl;
-    printf("AAAAAAA");
+    //printf("AAAAAAA");
 	switch(cmd)
 	{
 		case 'w':
 		case 'W':
+			commandPacket.params[0] = cmdParam[0];
+			commandPacket.params[1] = cmdParam[1];
 			commandPacket.command = COMMAND_FORWARD;
 			uartSendPacket(&commandPacket);
 			break;
 
 		case 's':
 		case 'S':
+			commandPacket.params[0] = cmdParam[0];
+			commandPacket.params[1] = cmdParam[1];
 			commandPacket.command = COMMAND_REVERSE;
 			uartSendPacket(&commandPacket);
 			break;
 
 		case 'a':
 		case 'A':
+			commandPacket.params[0] = cmdParam[0];
+			commandPacket.params[1] = cmdParam[1];
 			commandPacket.command = COMMAND_TURN_LEFT;
 			uartSendPacket(&commandPacket);
 			break;
 
 		case 'd':
 		case 'D':
+			commandPacket.params[0] = cmdParam[0];
+			commandPacket.params[1] = cmdParam[1];
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			uartSendPacket(&commandPacket);
 			break;
 		/*
 		case 'c':
 		case 'C':
+			commandPacket.params[0] = cmdParam[0];
+			commandPacket.params[1] = cmdParam[1];
 			commandPacket.params[2] = cmdParam[2];
 			commandPacket.command = COMMAND_GET_COLOUR;
 			uartSendPacket(&commandPacket);
-			
-
+			break;
+		
+		case 'f':
+		case 'F':
+			commandPacket.params[0] = cmdParam[0];
+			commandPacket.command = COMMAND_GET_DIST;
+			uartSendPacket(&commandPacket);
+			break;
 		*/
+
 		case 'q':
 		case 'Q': 
 			endSerial();
