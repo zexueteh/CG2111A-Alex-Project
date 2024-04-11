@@ -78,6 +78,25 @@ void handleCommand(const char *buffer)
 	// for future expansion
 }
 
+void handleColour(const char *buffer)
+{
+	int32_t data[4];
+	memcpy(data, &buffer[1], sizeof(data)); // buffer[1] might change
+
+	printf("Red Intensity:\t\t%d\n", data[0]);
+	printf("Green Intensity:\t\t%d\n", data[1]);
+	printf("Blue Intensity:\t\t%d\n", data[2]);
+	printf("Colour Detected:\t\t%d\n", data[3]);
+}
+
+void handleDist(const char *buffer)
+{
+	int32_t data[1];
+	memcpy(data, &buffer[1], sizeof(data));
+
+	printf("Distance:\t\t%d\n", data[0]);
+}
+
 void handleNetwork(const char *buffer, int len)
 {
 	// The first byte is the packet type
@@ -86,20 +105,28 @@ void handleNetwork(const char *buffer, int len)
 	switch(type)
 	{
 		case NET_ERROR_PACKET:
-		handleError(buffer);
-		break;
+			handleError(buffer);
+			break;
 
 		case NET_STATUS_PACKET:
-		handleStatus(buffer);
-		break;
+			handleStatus(buffer);
+			break;
 
 		case NET_MESSAGE_PACKET:
-		handleMessage(buffer);
-		break;
+			handleMessage(buffer);
+			break;
 
 		case NET_COMMAND_PACKET:
-		handleCommand(buffer);
-		break;
+			handleCommand(buffer);
+			break;
+		
+		case NET_COLOUR_PACKET:
+			handleColour(buffer);
+			break;
+		
+		case NET_DIST_PACKET:
+			handleDist(buffer);
+			break;
 	}
 }
 
@@ -125,9 +152,9 @@ void *readerThread(void *conn)
 	while(networkActive)
 	{
 		/* TODO: Insert SSL read here into buffer */
-	len = sslRead(conn, buffer, 128);
-        printf("read %d bytes from server.\n", len);
-		
+		len = sslRead(conn, buffer, 128);
+		printf("read %d bytes from server.\n", len);
+
 		/* END TODO */
 
 		networkActive = (len > 0);
@@ -137,13 +164,13 @@ void *readerThread(void *conn)
 	}
 
 	printf("Exiting network listener thread\n");
-    
-    /* TODO: Stop the client loop and call EXIT_THREAD */
-        stopClient();
-        EXIT_THREAD(conn);	
-    /* END TODO */
 
-    return NULL;
+	/* TODO: Stop the client loop and call EXIT_THREAD */
+	stopClient();
+	EXIT_THREAD(conn);	
+	/* END TODO */
+
+	return NULL;
 }
 
 void flushInput()
@@ -175,35 +202,43 @@ void *writerThread(void *conn)
 		{
 			case 'w':
 			case 'W':
-				                params[0] = STRAIGHT_SPEED;
-						params[1] = (ch == 'w')? TIMEOUT_SHORT: TIMEOUT_LONG;
-						memcpy(&buffer[2], params, sizeof(params));
-						sendData(conn, buffer, sizeof(buffer));
-						break;
+				params[0] = STRAIGHT_SPEED;
+				params[1] = (ch == 'w')? TIMEOUT_SHORT: TIMEOUT_LONG;
+				memcpy(&buffer[2], params, sizeof(params));
+				sendData(conn, buffer, sizeof(buffer));
+				break;
 			case 's':
 			case 'S':
-						params[0] = STRAIGHT_SPEED;
-						params[1] = (ch == 's')? TIMEOUT_SHORT: TIMEOUT_LONG;
-						memcpy(&buffer[2], params, sizeof(params));
-						sendData(conn, buffer, sizeof(buffer));
-						break;
+				params[0] = STRAIGHT_SPEED;
+				params[1] = (ch == 's')? TIMEOUT_SHORT: TIMEOUT_LONG;
+				memcpy(&buffer[2], params, sizeof(params));
+				sendData(conn, buffer, sizeof(buffer));
+				break;
 			case 'a':
 			case 'A':
-						params[0] = TURN_SPEED;
-						params[1] = (ch == 'a')? TURN_NUDGE: TURN_FULL;
-						memcpy(&buffer[2], params, sizeof(params));
-						sendData(conn, buffer, sizeof(buffer));
-						break;
+				params[0] = TURN_SPEED;
+				params[1] = (ch == 'a')? TURN_NUDGE: TURN_FULL;
+				memcpy(&buffer[2], params, sizeof(params));
+				sendData(conn, buffer, sizeof(buffer));
+				break;
 			case 'd':
 			case 'D':
-						params[0] = TURN_SPEED;
-						params[1] = (ch == 'd')? TURN_NUDGE: TURN_FULL;
-						memcpy(&buffer[2], params, sizeof(params));
-						sendData(conn, buffer, sizeof(buffer));
-						break;
+				params[0] = TURN_SPEED;
+				params[1] = (ch == 'd')? TURN_NUDGE: TURN_FULL;
+				memcpy(&buffer[2], params, sizeof(params));
+				sendData(conn, buffer, sizeof(buffer));
+				break;
 
-			// case 'C': colour sensor
-			
+			case 'c':
+			case 'C':
+				memcpy(&buffer[2], params, sizeof(params));
+				sendData(conn, buffer, sizeof(buffer));
+				break;
+			case 'f':
+			case 'F':
+				memcpy(&buffer[2], params, sizeof(params));
+				sendData(conn, buffer, sizeof(buffer));
+				break;
 			case 'q':
 			case 'Q':
 				quit=1;
@@ -215,12 +250,12 @@ void *writerThread(void *conn)
 
 	printf("Exiting keyboard thread\n");
 
-    /* TODO: Stop the client loop and call EXIT_THREAD */
+	/* TODO: Stop the client loop and call EXIT_THREAD */
 	stopClient();
 	EXIT_THREAD(conn);
-    /* END TODO */
+	/* END TODO */
 
-    return NULL;
+	return NULL;
 }
 
 /* TODO: #define filenames for the client private key, certificatea,
@@ -236,9 +271,9 @@ void *writerThread(void *conn)
 /* END TODO */
 void connectToServer(const char *serverName, int portNum)
 {
-    /* TODO: Create a new client */
+	/* TODO: Create a new client */
 	createClient(serverName, portNum, 1, CA_CERT_NAME, SERVER_NAME_ON_CERT, 1, CLIENT_CERT_FNAME, CLIENT_KEY_FNAME, readerThread, writerThread);
-    /* END TODO */
+	/* END TODO */
 }
 
 int main(int ac, char **av)
@@ -249,14 +284,14 @@ int main(int ac, char **av)
 		exit(-1);
 	}
 
-    networkActive = 1;
-    connectToServer(av[1], atoi(av[2]));
+	networkActive = 1;
+	connectToServer(av[1], atoi(av[2]));
 
-    /* TODO: Add in while loop to prevent main from exiting while the
-    client loop is running */
+	/* TODO: Add in while loop to prevent main from exiting while the
+	   client loop is running */
 
-    while(client_is_running());
+	while(client_is_running());
 
-    /* END TODO */
+	/* END TODO */
 	printf("\nMAIN exiting\n\n");
 }
