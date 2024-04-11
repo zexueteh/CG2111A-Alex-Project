@@ -2,16 +2,18 @@
 #include <avr/io.h>
 #include <math.h>
 
+//define COLOUR SENSOR pinout
+#define PIN22 (1<<0) //S0  22
+#define PIN24 (1<<2) //S1  23
+#define PIN26 (1<<4) //S2   24
+#define PIN28 (1<<6) //S3 25
+#define OUTPUT_PIN (1<<7) //pin 30
 
-#define PIN22 (1<<0) //S0
-#define PIN23 (1<<1) //S1
-#define PIN24 (1<<2) //S2
-#define PIN25 (1<<3) //S3 
+//define ultrasonic pinout
+#define TRIG_PIN (1<<5) //digital io 32
+#define ECHO_PIN (1<<3) //digital io 34
 
-#define TRIG_PIN (1<<5) //digital io 27
-#define ECHO_PIN (1<<6) //digital io 28
 
-#define OUTPUT_PIN (1<<4) //pin 26
 
 const double MOTOR_SPEED = 20;
 const unsigned int DIST = 200;
@@ -24,7 +26,7 @@ const uint16_t GREEN_WHITE = 2580;
 const uint16_t BLUE_BLACK = 97;
 const uint16_t BLUE_WHITE = 2239;
 
-static volatile int arr[3] = {0};
+//static volatile int arr[3] = {0};
 
 #define WHITETHRESHOLD 200
 #define MAXDEV 14
@@ -34,85 +36,81 @@ static volatile int arr[3] = {0};
 void getRGB()
 {
 
-  //Serial.println("scanning...");
-
-  //Serial.println("scanning red...");
   //reads red values 
-  PORTA &= ~(PIN24);
-  PORTA &= ~(PIN25);
+  PORTA &= ~(PIN26);
+  PORTA &= ~(PIN28);
   delayMicroseconds(100);
   int redValues[100] = {0};
   long redSum= 0;
   for ( int i = 0; i<100; i++)
   {
-      redValues[i] = pulseIn(26,LOW);
+      redValues[i] = pulseIn(30,LOW);
       redSum += redValues[i];
   }
   redSum /= 100;
-  //delay(2000);
+
 
 
 
   //reads green values
-  //Serial.println("scanning green...");
-  PORTA |= (PIN25);
-  PORTA |= PIN24;
+
+  PORTA |= (PIN26);
+  PORTA |= PIN28;
   delayMicroseconds(100);
   int greenValues[100] = {0};
   long greenSum = 0;
   for(int i = 0; i<100; i++)
   {
-    greenValues[i] = pulseIn(26,LOW);
+    greenValues[i] = pulseIn(30,LOW);
     greenSum += greenValues[i];
   }
   greenSum /= 100;
-  //delay(2000);
+
 
 
   //reads blue values  
-  //Serial.println("scanning blue...");
-  PORTA &= ~(PIN24);
-  PORTA |= PIN25;
+  PORTA &= ~(PIN26);
+  PORTA |= PIN28;
   delayMicroseconds(100);
   int blueValues[100] = {0};
   long blueSum = 0;
   for(int i = 0; i<100; i++)
   {
-    blueValues[i] = pulseIn(26,LOW);
+    blueValues[i] = pulseIn(30,LOW);
     blueSum += blueValues[i];
   }
   blueSum /=100;
-  //delay(2000);
+
 
   int redf =  map(redSum, RED_WHITE, RED_BLACK, 0,255);
   int greenf = map(greenSum, GREEN_WHITE, GREEN_BLACK, 0,255);
   int bluef = map(blueSum, BLUE_WHITE, BLUE_BLACK, 0, 255);
 
-/*
-  Serial.print("r: ");
-  Serial.print(redf);
-  Serial.print(" g: ");
-  Serial.print(greenf);
-  Serial.print(" b: ");
-  Serial.println(bluef);
-  */
+
   arr[0] = redf;
   arr[1] = greenf;
   arr[2] = bluef;
+
+  Serial.print("r: ");
+  Serial.print(redSum);
+  Serial.print(" g: ");
+  Serial.print(greenSum);
+  Serial.print(" b: ");
+  Serial.println(blueSum);
 }
 
 
 void sensorSetup() {
 
-  DDRA |= TRIG_PIN; //DDRA sensers are for ultrasonic sensors
-  DDRA &= ~(ECHO_PIN);
+  DDRC |= TRIG_PIN; //DDRA sensers are for ultrasonic sensors
+  DDRC &= ~(ECHO_PIN);
 
-  DDRA |= (PIN22 | PIN23 | PIN24 | PIN24);    //DDRA registers for the color sensor  
-  DDRA &= ~OUTPUT_PIN;
+  DDRA |= (PIN22 | PIN24 | PIN26 | PIN28);    //DDRA registers for the color sensor  
+  DDRC &= ~OUTPUT_PIN;
   PORTA |= PIN22;
-  PORTA &= ~(PIN23);
+  PORTA &= ~(PIN24);
     // Initialize serial communication
-    //Serial.begin(9600);
+    
 }
 
 void closeIn()
@@ -125,25 +123,6 @@ void closeIn()
   getRGB(); 
 }
 
-
-/*
-void loop() {
-    // UNCOMMENT FOR COLOR SENSOR OPS 
-    printColor();
-    Serial.print("r: ");
-    Serial.print(arr[0]);
-    Serial.print(" g: ");
-    Serial.print(arr[1]);
-    Serial.print(" b: ");
-    Serial.println(arr[2]);
-
-    delay(1000);
-    
-    int dist = getDist();
-    Serial.print("distance: ");
-    Serial.println(dist);
-
-}*/
 
 float calculateSD() {
     int sum;
@@ -202,13 +181,14 @@ float getDist()
 
   long duration = 0;
   //clear trig_pin
-  PORTA &= ~(TRIG_PIN);
-  PORTA |= TRIG_PIN;
+  PORTC &= ~(TRIG_PIN);
+  PORTC |= TRIG_PIN;
   delayMicroseconds(10);
-  PORTA &= ~(TRIG_PIN);
-  duration = pulseIn(28, HIGH);
+  PORTC &= ~(TRIG_PIN);
+  duration = pulseIn(32, HIGH);
   return (duration*0.0343)/2;
 
 }
+
 
 
