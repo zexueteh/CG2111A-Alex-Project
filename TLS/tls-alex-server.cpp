@@ -162,7 +162,7 @@ void handleError(TResult error)
 			printf("ERROR: Bad Magic Number\n");
 			break;
 
-		case PACKET_CHECKSUM_BAD:
+            case PACKET_CHECKSUM_BAD:
 			printf("ERROR: Bad checksum\n");
 			break;
 
@@ -245,42 +245,49 @@ void handleCommand(void *conn, const char *buffer)
 	TPacket commandPacket;
 
 	commandPacket.packetType = PACKET_TYPE_COMMAND;
-	commandPacket.params[0] = cmdParam[0];
-	commandPacket.params[1] = cmdParam[1];
 
 	printf("COMMAND RECEIVED: %c %d %d\n", cmd, cmdParam[0], cmdParam[1]);
 	
 	switch(cmd)
 	{
-		case 'f':
-		case 'F':
-			commandPacket.command = COMMAND_FORWARD;
+		case 'w':
+		case 'W':
+			commandPacket.params[0] = cmdParam[0];
+            commandPacket.params[1] = cmdParam[1];
+            commandPacket.command = COMMAND_FORWARD;
 			uartSendPacket(&commandPacket);
-			break;
+			
+            break;
 
-		case 'b':
-		case 'B':
-			commandPacket.command = COMMAND_REVERSE;
-			uartSendPacket(&commandPacket);
-			break;
-
-		case 'l':
-		case 'L':
-			commandPacket.command = COMMAND_TURN_LEFT;
-			uartSendPacket(&commandPacket);
-			break;
-
-		case 'r':
-		case 'R':
-			commandPacket.command = COMMAND_TURN_RIGHT;
+		case 'a':
+		case 'A':
+			commandPacket.params[0] = cmdParam[0];
+            commandPacket.params[1] = cmdParam[1];
+            commandPacket.command = COMMAND_REVERSE;
 			uartSendPacket(&commandPacket);
 			break;
 
 		case 's':
 		case 'S':
-			commandPacket.command = COMMAND_STOP;
+            commandPacket.params[0] = cmdParam[0];
+            commandPacket.params[1] = cmdParam[1];
+            commandPacket.command = COMMAND_TURN_LEFT;
 			uartSendPacket(&commandPacket);
 			break;
+
+		case 'd':
+		case 'D':
+			commandPacket.params[0] = cmdParam[0];
+            commandPacket.params[1] = cmdParam[1];
+            commandPacket.command = COMMAND_TURN_RIGHT;
+			uartSendPacket(&commandPacket);
+			break;
+
+		//case 's':
+		//case 'S':
+			//commandPacket.command = COMMAND_STOP;
+			//uartSendPacket(&commandPacket);
+			//break;
 
 		case 'c':
 		case 'C':
